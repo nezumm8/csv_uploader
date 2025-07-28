@@ -1,0 +1,4 @@
+UNIQUE_NUM,TITLE,DESCRIPTION,OPTIONAL_TEXT
+1488,date,just a random date,nothing
+1945,end,some text,""
+2022,title,description,opt_text
