@@ -17,6 +17,9 @@ return new class extends Migration
             $table->text('title');
             $table->text('description');
             $table->text('opt_text')->nullable();
+            $table->text('filename');
+            $table->timestamp('uploaded_at');
+            $table->text('status');
         });
     }
 
