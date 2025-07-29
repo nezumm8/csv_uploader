@@ -11,12 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('csv_data', function (Blueprint $table) {
+        Schema::create('csv_header', function (Blueprint $table) {
             $table->id();
-            $table->integer('unique_num')->unique();
-            $table->text('title');
-            $table->text('description');
-            $table->text('opt_text')->nullable();
+            $table->text('filename');
+            $table->timestamp('uploaded_at');
+            $table->text('status')->default('pending');
         });
     }
 
@@ -25,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('csv_data');
+        Schema::dropIfExists('csv_header');
     }
 };

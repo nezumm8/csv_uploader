@@ -16,7 +16,7 @@ class ImportCSVJob implements ShouldQueue
     /**
      * Create a new job instance.
      */
-    public function __construct(public $filename)
+    public function __construct()
     {
     }
 
@@ -25,9 +25,19 @@ class ImportCSVJob implements ShouldQueue
      */
     public function handle(): void
     {
+        $filename = DB::table('csv_header')
+            ->select('filename')
+            ->where('status', '=', 'pending')
+            ->limit(1)
+            ->get();
+
+        DB::table('csv_header')
+            ->where('filename', '=', $filename)
+            ->update(['status' => 'processing']);
+
         $storage_path = storage_path('app/private/uploads');
 
-        $csv = fopen($storage_path . '/' . $this->filename, 'r');
+        $csv = fopen($storage_path . '/' . $filename, 'r');
 
         $data = [];
 
@@ -35,15 +45,29 @@ class ImportCSVJob implements ShouldQueue
             $data[] = $row;
         }
 
-        foreach ($data as $row) {
-            [$num, $title, $description, $opt_text] = $row;
+        DB::beginTransaction();
+        try {
+            foreach ($data as $row) {
+                [$num, $title, $description, $opt_text] = $row;
 
-            DB::table('csv_data')->insert([
-                'unique_num' => $num,
-                'title' => $title,
-                'description' => $description,
-                'opt_text' => $opt_text,
-            ]);
+                DB::table('csv_data')->insert([
+                    'unique_num' => $num,
+                    'title' => $title,
+                    'description' => $description,
+                    'opt_text' => $opt_text,
+                ]);
+            }
+            DB::table('csv_header')
+                ->where('filename', '=', $filename)
+                ->update(['status' => 'completed']);
+
+            DB::commit();
+        } catch (\Exception $exception) {
+            DB::rollBack();
+
+            DB::table('csv_header')
+                ->where('filename', '=', $filename)
+                ->update(['status' => 'failed']);
         }
     }
 }

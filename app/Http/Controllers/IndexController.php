@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Jobs\ImportCSVJob;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class IndexController extends Controller
@@ -24,7 +25,12 @@ class IndexController extends Controller
 
         $request->file('file')->storeAs('uploads', $filename);
 
-        importCSVJob::dispatch($filename);
+        DB::table('csv_header')->insert([
+            'filename' => $filename,
+            'status' => 'pending',
+        ]);
+
+        importCSVJob::dispatch();
 
         return redirect('/');
     }
