@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Jobs\ImportCSVJob;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 class IndexController extends Controller
 {
@@ -27,10 +27,11 @@ class IndexController extends Controller
 
         DB::table('csv_header')->insert([
             'filename' => $filename,
+            'created_at' => Carbon::now(),
             'status' => 'pending',
         ]);
 
-        importCSVJob::dispatch();
+        importCSVJob::dispatch($filename);
 
         return redirect('/');
     }

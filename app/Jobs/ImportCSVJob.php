@@ -16,7 +16,7 @@ class ImportCSVJob implements ShouldQueue
     /**
      * Create a new job instance.
      */
-    public function __construct()
+    public function __construct(private $filename)
     {
     }
 
@@ -25,19 +25,13 @@ class ImportCSVJob implements ShouldQueue
      */
     public function handle(): void
     {
-        $filename = DB::table('csv_header')
-            ->select('filename')
-            ->where('status', '=', 'pending')
-            ->limit(1)
-            ->get();
-
         DB::table('csv_header')
-            ->where('filename', '=', $filename)
+            ->where('filename', '=', $this->filename)
             ->update(['status' => 'processing']);
 
         $storage_path = storage_path('app/private/uploads');
 
-        $csv = fopen($storage_path . '/' . $filename, 'r');
+        $csv = fopen($storage_path . '/' . $this->filename, 'r');
 
         $data = [];
 
@@ -58,7 +52,7 @@ class ImportCSVJob implements ShouldQueue
                 ]);
             }
             DB::table('csv_header')
-                ->where('filename', '=', $filename)
+                ->where('filename', '=', $this->filename)
                 ->update(['status' => 'completed']);
 
             DB::commit();
@@ -66,7 +60,7 @@ class ImportCSVJob implements ShouldQueue
             DB::rollBack();
 
             DB::table('csv_header')
-                ->where('filename', '=', $filename)
+                ->where('filename', '=', $this->filename)
                 ->update(['status' => 'failed']);
         }
     }

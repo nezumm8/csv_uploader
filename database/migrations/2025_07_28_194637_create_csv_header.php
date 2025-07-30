@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('csv_header', function (Blueprint $table) {
             $table->id();
-            $table->text('filename');
-            $table->timestamp('uploaded_at');
+            $table->text('filename')->unique();
+            $table->dateTime('created_at');
             $table->text('status')->default('pending');
         });
     }
