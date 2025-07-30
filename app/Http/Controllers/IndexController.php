@@ -11,7 +11,9 @@ class IndexController extends Controller
 {
     public function show()
     {
-        return view('index');
+        $data = DB::table('csv_header')->get();
+
+        return view('index', compact('data'));
     }
 
     public function store(Request $request)
