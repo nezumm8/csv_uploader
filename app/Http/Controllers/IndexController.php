@@ -2,18 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Data;
+use App\Models\Headers;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Jobs\ImportCSVJob;
-use Illuminate\Support\Facades\DB;
 
 class IndexController extends Controller
 {
     public function show()
     {
-        $data = DB::table('csv_header')->get();
+        $headers = Headers::all();
 
-        return view('index', compact('data'));
+        return view('index', compact('headers'));
     }
 
     public function store(Request $request)
@@ -22,16 +23,14 @@ class IndexController extends Controller
             'file' => 'required|file|mimes:csv'
         ]);
 
-
         $filename = $request->file('file')->getClientOriginalName();
 
         $request->file('file')->storeAs('uploads', $filename);
 
-        DB::table('csv_header')->insert([
-            'filename' => $filename,
-            'created_at' => Carbon::now(),
-            'status' => 'pending',
-        ]);
+        $headers = new Headers();
+        $headers->filename = $filename;
+        $headers->status = 'pending';
+        $headers->save();
 
         importCSVJob::dispatch($filename);
 

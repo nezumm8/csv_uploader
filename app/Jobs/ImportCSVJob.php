@@ -2,6 +2,8 @@
 
 namespace App\Jobs;
 
+use App\Models\Data;
+use App\Models\Headers;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -25,9 +27,10 @@ class ImportCSVJob implements ShouldQueue
      */
     public function handle(): void
     {
-        DB::table('csv_header')
-            ->where('filename', '=', $this->filename)
-            ->update(['status' => 'processing']);
+        $headers = Headers::where('filename', $this->filename)->first();
+
+        $headers->status = 'processing';
+        $headers->save();
 
         $storage_path = storage_path('app/private/uploads');
 
@@ -44,24 +47,22 @@ class ImportCSVJob implements ShouldQueue
             foreach ($data as $row) {
                 [$num, $title, $description, $opt_text] = $row;
 
-                DB::table('csv_data')->insert([
-                    'unique_num' => $num,
-                    'title' => $title,
-                    'description' => $description,
-                    'opt_text' => $opt_text,
-                ]);
+                $data = new Data();
+                $data->unique_num = $num;
+                $data->title = $title;
+                $data->description = $description;
+                $data->opt_text = $opt_text;
             }
-            DB::table('csv_header')
-                ->where('filename', '=', $this->filename)
-                ->update(['status' => 'completed']);
+
+            $headers->status = 'completed';
+            $headers->save();
 
             DB::commit();
         } catch (\Exception $exception) {
             DB::rollBack();
 
-            DB::table('csv_header')
-                ->where('filename', '=', $this->filename)
-                ->update(['status' => 'failed']);
+            $headers->status = 'failed';
+            $headers->save();
         }
     }
 }

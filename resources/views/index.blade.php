@@ -12,6 +12,8 @@
     <button type="submit">Upload</button>
 </form>
 
+<br>
+
 <table>
     <thead>
     <tr>
@@ -21,7 +23,7 @@
     </tr>
     </thead>
     <tbody>
-    @foreach($data as $item)
+    @foreach($headers as $item)
         <tr>
             <td>{{ $item->filename }}</td>
             <td>{{ $item->created_at }}</td>
